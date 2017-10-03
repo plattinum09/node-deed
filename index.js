@@ -38,13 +38,14 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	changwat: String,
 	amphur: String,
 });
-const arrr_changwat = [ 10,11,12 ] 
-for (let num_changwat in arrr_changwat) {
-	for (let i_chanode = 1; i_chanode <= 200000; i_chanode++) {
-		osmosis
+let i_chanode 	= 0;
+let i_changwat 	= 10;
+
+const intervalObj = setInterval(() => { 
+  		osmosis
 			.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
 			  chanode_no: i_chanode,
-			  selChangwat: arrr_changwat[num_changwat]
+			  selChangwat: i_changwat
 		 	})
 			.set({
 			    'numPage':  '.style6',
@@ -55,7 +56,7 @@ for (let num_changwat in arrr_changwat) {
 			 	osmosis
 			 	.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
 			 		chanode_no: i_chanode,
-		  			selChangwat: arrr_changwat[num_changwat],
+		  			selChangwat: i_changwat,
 		  		page: i 
 			 	}).set({
 			 		'link':  ['.table !> a@onclick'],
@@ -97,17 +98,24 @@ for (let num_changwat in arrr_changwat) {
 				  	 			const newObj = new deed_mongo(deed)	
 				  	 			newObj.save()
 				  	 				console.log(objdeed)
-
 				  	 		}
 				  	 	})
 			 		}
 			 	})
 			}
-			// console.log(i_chanode)
+			console.log(i_chanode)
 		})
-		// console.log(i_chanode)
+
+	if (i_chanode == 5 && i_changwat <= 13) {
+		i_chanode = 0
+		i_changwat++
 	}
-}
+	i_chanode++
+	if (i_changwat == 14) {
+		clearInterval(intervalObj);
+	}
+
+ }, 300);
 
 function isEmpty(obj) {
   return !Object.keys(obj).length > 0;
