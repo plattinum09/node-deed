@@ -38,9 +38,9 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	amphur: String,
 });
 let i_chanode 		= 0;
-let i_changwat 		= 16;
-const limit_changwat = 27;
-const limit_chanode  = 200000;
+let i_changwat 		= 10;
+const limit_changwat = 15;
+const limit_chanode  = 2;
 function crawlerDeed() {
 	osmosis
 		.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
@@ -54,7 +54,21 @@ function crawlerDeed() {
 		const page_num = parseInt(page['numPage'])
 		const num = Math.ceil(page_num/20)
 		console.log(i_chanode,page)
-		let done = 1;
+		let done = 0;
+		if (page_num == 0) {
+			if (done == page_num && i_chanode <= limit_chanode && i_changwat <= limit_changwat ) {
+				setTimeout(() => {
+					i_chanode++
+					crawlerDeed()
+				}, 100)
+				console.log('i_chanode >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+			}else if (done == page_num && i_chanode > limit_chanode && i_changwat <= limit_changwat) {
+				i_chanode = 0
+				i_changwat++
+				crawlerDeed()
+				console.log('new i_changwat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+			}
+		}
 		for (let i = 1; i <= num; i++) {
 		 	osmosis
 		 	.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
@@ -106,6 +120,7 @@ function crawlerDeed() {
 					  	 			newObj.save()
 					  	 			// console.log(deed)
 					  	 		}
+				 				done++
 					  	 		console.log(done+":"+page_num,deed)
 		 						if (done == page_num && i_chanode <= limit_chanode && i_changwat <= limit_changwat ) {
 									setTimeout(() => {
@@ -119,7 +134,6 @@ function crawlerDeed() {
 									crawlerDeed()
 									console.log('new i_changwat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
 								}
-				 				done++
 					  	 	})
 				 		}
 					}
