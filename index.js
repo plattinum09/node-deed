@@ -39,7 +39,7 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 });
 let i_chanode 		= 0;
 let i_changwat 		= 16;
-const limit_changwat = 17;
+const limit_changwat = 27;
 
 function crawlerDeed() {
 	osmosis
@@ -104,26 +104,21 @@ function crawlerDeed() {
 			  	 		}
 			  	 	})
 		 		}
-		 	}
-
-		 			
-
-		 		
 		 	})
 		}
-		if (i_chanode <= 1 && i_changwat <= limit_changwat ) {
+		if (i_chanode <= 200000 && i_changwat <= limit_changwat ) {
 			setTimeout(() => {
 				i_chanode++
 				crawlerDeed()
 			}, 100)
-		}else if (i_chanode > 1 && i_changwat <= limit_changwat) {
+		}else if (i_chanode > 200000 && i_changwat <= limit_changwat) {
 			i_chanode = 0
 			i_changwat++
 			crawlerDeed()
 		}else{
 			console.log('finish')
 		}
-		console.log(i_chanode)
+		console.log(i_changwat,i_chanode)
 	})
 	  	
 }
