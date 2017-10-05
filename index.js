@@ -38,8 +38,8 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	amphur: String,
 });
 let i_chanode 		= 0;
-let i_changwat 		= 10;
-const limit_changwat = 15;
+let i_changwat 		= 16;
+const limit_changwat = 17;
 
 function crawlerDeed() {
 	osmosis
@@ -63,13 +63,14 @@ function crawlerDeed() {
 		 	}).set({
 		 		'link':  ['.table !> a@onclick'],
 		 	}).data(function(url) {
-		 		for (var i in url['link']) {
-		 			let Url = url['link'][i]
-		 			Url = Url.replace('LandReport(', '')
-		 			Url = Url.replace("'", '')
-		 			Url = Url.replace("','720','570');", '')
-		 			Url = Url.split(',')
-		 			osmosis
+			let Url = url['link'][1]
+		 	if (Url !== undefined) {
+				// console.log(Url,i,num)
+	 			Url = Url.replace('LandReport(', '')
+	 			Url = Url.replace("'", '')
+	 			Url = Url.replace("','720','570');", '')
+	 			Url = Url.split(',')
+ 				osmosis
 			  	 	.get(`http://property.treasury.go.th/pvmwebsite/search_data/r_land_price.asp?landid=${Url[0]}&changwat=${Url[1]}&amphur=${Url[2]}`)
 			  	 	.set({
 			  	 		'branch': 'b[2]',
@@ -103,19 +104,24 @@ function crawlerDeed() {
 			  	 		}
 			  	 	})
 		 		}
+		 	}
+
+		 			
+
+		 		
 		 	})
 		}
-		if (i_chanode <= 200000 && i_changwat <= limit_changwat ) {
+		if (i_chanode <= 1 && i_changwat <= limit_changwat ) {
 			setTimeout(() => {
 				i_chanode++
 				crawlerDeed()
 			}, 100)
-		}else if (i_chanode > 200000 && i_changwat <= limit_changwat) {
+		}else if (i_chanode > 1 && i_changwat <= limit_changwat) {
 			i_chanode = 0
 			i_changwat++
 			crawlerDeed()
 		}else{
-			console('finish')
+			console.log('finish')
 		}
 		console.log(i_chanode)
 	})
