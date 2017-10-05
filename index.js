@@ -38,8 +38,8 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	amphur: String,
 });
 let i_chanode 		= 0;
-let i_changwat 		= 10;
-const limit_changwat = 15;
+let i_changwat 		= 16;
+const limit_changwat = 27;
 const limit_chanode  = 200000;
 function crawlerDeed() {
 	osmosis
