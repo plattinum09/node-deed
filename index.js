@@ -1,6 +1,6 @@
 /* โหลด Express มาใช้งาน */
 const app = require('express')()
-const port = process.env.PORT || 5001
+const port = process.env.PORT || 5002
 const osmosis = require('osmosis')
 const mongoose = require('mongoose')
 
@@ -37,11 +37,13 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	changwat: String,
 	amphur: String,
 });
-let i_chanode 		= 0;
+let i_chanode 		= 1;
 let i_changwat 		= 16;
-const limit_changwat = 27;
+const limit_changwat = 18;
 const limit_chanode  = 200000;
-function crawlerDeed() {
+let done = 1;
+
+const crawlerDeed = async () => {
 	osmosis
 		.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
 		  chanode_no: `${i_chanode}`,
@@ -53,100 +55,112 @@ function crawlerDeed() {
 	  	.data(function(page) {
 		const page_num = parseInt(page['numPage'])
 		const num = Math.ceil(page_num/20)
-		console.log(i_chanode,page)
-		let done = 0;
+		// console.log(i_changwat+"i"+i_chanode,page,num)
+		done = 1
 		if (page_num == 0) {
 			if (done == page_num && i_chanode <= limit_chanode && i_changwat <= limit_changwat ) {
-				setTimeout(() => {
 					i_chanode++
 					crawlerDeed()
-				}, 100)
-				console.log('i_chanode >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+				    console.log('i_chanode >>>>>>>>>>>>>>>> 0')
 			}else if (done == page_num && i_chanode > limit_chanode && i_changwat <= limit_changwat) {
 				i_chanode = 0
 				i_changwat++
-				crawlerDeed()
-				console.log('new i_changwat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+					crawlerDeed()
+					console.log('new i_changwat >>>>>>>>>>> ')
 			}
 		}
-		for (let i = 1; i <= num; i++) {
-		 	osmosis
-		 	.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
-		 		chanode_no: i_chanode,
-	  			selChangwat: i_changwat,
-	  			page: i 
-		 	})
-		 	.set({
-		 		'link':  ['.table !> a@onclick'],
-		 	}).data(function(url) {
-			for (var i in url['link']) {
-				let Url = url['link'][i]
-				if (Url.indexOf('LandReport(') > -1) {
-					if (Url !== undefined && Url.indexOf('LandReport(') > -1) {
-						// console.log(Url,i,num)
-			 			Url = Url.replace('LandReport(', '')
-			 			Url = Url.replace("'", '')
-			 			Url = Url.replace("','720','570');", '')
-			 			Url = Url.split(',')
-		 				osmosis
-					  	 	.get(`http://property.treasury.go.th/pvmwebsite/search_data/r_land_price.asp?landid=${Url[0]}&changwat=${Url[1]}&amphur=${Url[2]}`)
-					  	 	.set({
-					  	 		'branch': 'b[2]',
-					  	 		'theperiod': 'b[3]',
-					  	 		'costappraisal': 'tr[10] > td[4] > b',
-					  	 		'area' : 'tr[9] > td[4]',
-					  	 		'deedno' : 'tr[3] > td[4]',
-					  	 		'survey' : 'tr[4] > td[4]',
-					  	 		'place' : 'tr[6] > td[2]',
-					  	 		'UTM' : 'tr[6] > td[3]',
-					  	 		'map' : 'tr[6] > td[5]',
-					  	 		'landnumber' : 'tr[6] > td[9]',
-					  	 		'tumbol' : 'tr[4] > td[6]',
-					  	 		'scale' : 'tr[6] > td[7]'
-					  	 	}).data(function(deed) {
-					  	 		if (isEmpty(deed) ) {
-					  	 			const deedObj = new deed_mongo_undefined({
-					  	 				landid:Url[0],
-					  	 				changwat:Url[1],
-					  	 				amphur:Url[2]
-					  	 			})
-					  	 			deedObj.save()
-					  	 		}else{
-					  	 			let objdeed = deed
-					  	 			objdeed['landid'] = Url[0]
-					  	 			objdeed['changwat'] = Url[1]
-					  	 			objdeed['amphur'] = Url[2]
-					  	 			const newObj = new deed_mongo(deed)	
-					  	 			newObj.save()
-					  	 			// console.log(deed)
-					  	 		}
-				 				done++
-					  	 		console.log(done+":"+page_num,deed)
-		 						if (done == page_num && i_chanode <= limit_chanode && i_changwat <= limit_changwat ) {
-									setTimeout(() => {
-										i_chanode++
-										crawlerDeed()
-									}, 100)
-									console.log('i_chanode >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-								}else if (done == page_num && i_chanode > limit_chanode && i_changwat <= limit_changwat) {
-									i_chanode = 0
-									i_changwat++
-									crawlerDeed()
-									console.log('new i_changwat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-								}
-					  	 	})
-				 		}
-					}
-				}
-		 	
-		 	})
-	  	 	// console.log(done+"="+num)
-		}
-		console.log(i_changwat,i_chanode)
+		option_deed(1,num,page_num)
+		// console.log(i_changwat,i_chanode,done)
 	})
-	  	
 }
 crawlerDeed()
+
+//ผิด
+const option_deed = async (iPage,num,page_num)=>{
+	// for (let i = 1; i <= num; i++) {
+		// console.log('P'+page_num)
+	 	osmosis
+	 	.post('http://property.treasury.go.th/pvmwebsite/search_data/s_land1_result.asp', {
+	 			chanode_no: i_chanode,
+				selChangwat: i_changwat,
+				page: iPage 
+	 	})
+	 	.set({
+	 		'link':  ['.table !> a@onclick'],
+	 	}).data(function(url) {
+	 		// console.log(url['link'])
+		for (let numlink in url['link']) {
+			let Url = url['link'][numlink]
+			if (Url.indexOf('LandReport(') > -1) {
+				if (Url !== undefined && Url.indexOf('LandReport(') > -1) {
+					// console.log(Url,i,num)
+		 			Url = Url.replace('LandReport(', '')
+		 			Url = Url.replace("'", '')
+		 			Url = Url.replace("','720','570');", '')
+		 			Url = Url.split(',')
+	 					osmosis
+				  	 	.get(`http://property.treasury.go.th/pvmwebsite/search_data/r_land_price.asp?landid=${Url[0]}&changwat=${Url[1]}&amphur=${Url[2]}`)
+				  	 	.set({
+				  	 		'branch': 'b[2]',
+				  	 		'theperiod': 'b[3]',
+				  	 		'costappraisal': 'tr[10] > td[4] > b',
+				  	 		'area' : 'tr[9] > td[4]',
+				  	 		'deedno' : 'tr[3] > td[4]',
+				  	 		'survey' : 'tr[4] > td[4]',
+				  	 		'place' : 'tr[6] > td[2]',
+				  	 		'UTM' : 'tr[6] > td[3]',
+				  	 		'map' : 'tr[6] > td[5]',
+				  	 		'landnumber' : 'tr[6] > td[9]',
+				  	 		'tumbol' : 'tr[4] > td[6]',
+				  	 		'scale' : 'tr[6] > td[7]'
+				  	 	}).data(function(deed) {
+				  	 		if (isEmpty(deed) ) {
+				  	 			const deedObj = new deed_mongo_undefined({
+				  	 				landid:Url[0],
+				  	 				changwat:Url[1],
+				  	 				amphur:Url[2]
+				  	 			})
+				  	 			deedObj.save()
+				  	 		}else{
+				  	 			let objdeed = deed
+				  	 			objdeed['landid'] = Url[0]
+				  	 			objdeed['changwat'] = Url[1]
+				  	 			objdeed['amphur'] = Url[2]
+				  	 			const newObj = new deed_mongo(deed)	
+				  	 			newObj.save()
+				  	 		}
+				  	 		console.log(done+":"+page_num,deed)
+				  	 	}).then(function(argument) {
+							// console.log(done+":"+page_num+':'+num+':'+iPage,i_changwat,i_chanode)
+				  	 		done++
+							// console.log(done,page_num,limit_chanode)
+				  		  	if (done == page_num && i_chanode < limit_chanode && i_changwat <= limit_changwat ) {
+					  		  		i_chanode++
+								crawlerDeed()
+								console.log('i_chanode >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+							}else if (done == page_num && i_chanode > limit_chanode && i_changwat <= limit_changwat) {
+								i_chanode = 0
+								i_changwat++
+								crawlerDeed()
+								console.log('new i_changwat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>'+i_changwat+'='+limit_changwat)
+							}else if(done == page_num && i_changwat == limit_changwat){
+								console.log('success')
+							}
+				  	 	})
+			 		}
+			 		
+				}
+				
+			}
+	 	}).then(function() {
+	 		iPage++
+			if (iPage <= num) {
+				option_deed(iPage,num,page_num)
+			}
+			// console.log(iPage+'new'+num)
+	 	})
+}
+
 
 function isEmpty(obj) {
   return !Object.keys(obj).length > 0;
