@@ -37,11 +37,11 @@ const deed_mongo_undefined = mongoose.model('deed_undefined',{
 	changwat: String,
 	amphur: String,
 });
-let i_chanode 		= 1;
+let i_chanode 		= 0;
 let i_changwat 		= 16;
 const limit_changwat = 18;
 const limit_chanode  = 200000;
-let done = 1;
+let done = 0;
 
 const crawlerDeed = async () => {
 	osmosis
@@ -56,7 +56,7 @@ const crawlerDeed = async () => {
 		const page_num = parseInt(page['numPage'])
 		const num = Math.ceil(page_num/20)
 		// console.log(i_changwat+"i"+i_chanode,page,num)
-		done = 1
+		done = 0
 		if (page_num == 0) {
 			if (done == page_num && i_chanode <= limit_chanode && i_changwat <= limit_changwat ) {
 					i_chanode++
